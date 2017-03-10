@@ -25,7 +25,6 @@ $empty_auth_fields = function(Request $request, Response $response, callable $ne
         return $response->withJson(json_message_array("The password cannot be empty!", false));
     }
 
-
     $next_response = $next($request, $response);
 
     return $next_response;

@@ -3,6 +3,8 @@
 use Slim\Http\Request;
 use Slim\Http\Response;
 
+use Toyota\Component\Ldap\Platform\Native\Search;
+
 /**
  * The login route. Will accept only basic HTTP authentication. Send a request to this route to authenticate a BPA
  * employee's credential.
@@ -12,11 +14,13 @@ $app->get('/login', function(Request $request, Response $response) {
     $username = $request->getHeader('PHP_AUTH_USER')[0];
     $password = $request->getHeader('PHP_AUTH_PW')[0];
 
-    $dirty_bpanz = ldap_connect('ldap://bpa-d-server01.bpanz.local');
+    $dirty_bpanz_connection = obj_bind_to_dirty_bpanz_domain($username, $password);
 
+    $results = $dirty_bpanz_connection->search('ou=users,dc=bpanz,dc=local', "(SAMAccount={$username})", true);
+
+    $dirty_bpanz = ldap_connect('ldap://bpa-d-server01.bpanz.local');
     $is_authenticated = bind_to_dirty_bpanz_domain($dirty_bpanz, $username, $password);
 
-    $sr = get_first_and_last_names($dirty_bpanz, $username);
 
     $message = ($is_authenticated === false ? "Unsuccessful authentication" : "Successful authentication");
     $return_data = [];

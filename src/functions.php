@@ -44,6 +44,25 @@ function bind_to_dirty_bpanz_domain($ldap_server_link, string $username, string 
     return ldap_bind($ldap_server_link, $username, $password);
 }
 
+
+use Toyota\Component\Ldap\Core\Manager;
+use Toyota\Component\Ldap\Platform\Native\Driver;
+
+function obj_bind_to_dirty_bpanz_domain(string $username, string $password): Manager {
+    $binding_params = [
+        'hostname' => 'bpa-d-server01.bpanz.local',
+        'base_dn' => 'dc=bpanz,dc=local'
+    ];
+
+    $manager = new Manager($binding_params, new Driver());
+
+    $manager->connect();
+
+    $manager->bind($username, $password);
+
+    return $manager;
+}
+
 function get_first_and_last_names($ldap_server_link, string $username) {
     $dn = "CN=Users";
     $filter = "(SAMAccount={$username})";
