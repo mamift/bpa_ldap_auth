@@ -17,13 +17,14 @@ $empty_auth_fields = function(Request $request, Response $response, callable $ne
     $username = $request->getHeader('PHP_AUTH_USER')[0];
     $password = $request->getHeader('PHP_AUTH_PW')[0];
 
+    if (empty($username)) {
+        return $response->withJson(json_message_array("The username cannot be empty!", false));
+    }
+
     if (empty($password)) {
         return $response->withJson(json_message_array("The password cannot be empty!", false));
     }
 
-    if (empty($username)) {
-        return $response->withJson(json_message_array("The username cannot be empty!", false));
-    }
 
     $next_response = $next($request, $response);
 
@@ -61,5 +62,24 @@ $specific_CORS = function(Request $request, Response $response, callable $next) 
     return $response;
 };
 
-$app->add($empty_auth_fields);
+/**
+ * Will return a specific error message for a request lacking the Authorization header.
+ * @param Request $request
+ * @param Response $response
+ * @param callable $next
+ * @return Response
+ */
+$http_basic_auth = function(Request $request, Response $response, callable $next) {
+    $http_basic_auth_header_is_present = $request->getHeader('HTTP_AUTHORIZATION');
+
+    if (empty($http_basic_auth_header_is_present) || !isset($http_basic_auth_header_is_present)) {
+        return $response->withJson(json_message_array("No basic HTTP Authorization header provided.", false))->withStatus(401);
+    }
+
+    $response = $next($request, $response);
+    return $response;
+};
+
 $app->add($specific_CORS);
+$app->add($http_basic_auth);
+$app->add($empty_auth_fields);

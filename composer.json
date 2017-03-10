@@ -21,6 +21,9 @@
         "phpunit/phpunit": ">=4.8 < 6.0"
     },
     "autoload-dev": {
+        "files": [
+            "src/functions.php"
+        ],
         "psr-4": {
             "Tests\\": "tests/"
         }
