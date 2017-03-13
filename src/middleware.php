@@ -6,6 +6,32 @@
 use Slim\Http\Request;
 use Slim\Http\Response;
 
+$_APIKEY = require __DIR__ . DIRECTORY_SEPARATOR . 'apikey.php';
+
+/**
+ * Checks the API key header.
+ * @param Request $request
+ * @param Response $response
+ * @param callable $next
+ * @return Response
+ */
+$check_api_key_first = function(Request $request, Response $response, callable $next): Response {
+    global $_APIKEY;
+    $apikey = $request->getHeader('apikey')[0];
+
+    if (empty($apikey) || !isset($apikey)) {
+        return $response->withJson(json_message_array("Empty API key. Unauthorized.", false))->withStatus(401);
+    }
+
+    if ($apikey !== $_APIKEY) {
+        return $response->withJson(json_message_array("Invalid API key. Unauthorized.", false))->withStatus(401);
+    }
+
+    $next_response = $next($request, $response);
+
+    return $next_response;
+};
+
 /**
  * Ensures that the username and password of a basic HTTP authentication header are not empty.
  * @param Request $request
@@ -79,6 +105,7 @@ $http_basic_auth = function(Request $request, Response $response, callable $next
     return $response;
 };
 
+$app->add($check_api_key_first);
 $app->add($specific_CORS);
 $app->add($http_basic_auth);
 $app->add($empty_auth_fields);
